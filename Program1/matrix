@@ -8,6 +8,7 @@ inputMatrix2="inputMatrix2$$"
 tempOut1="tempOut1$$"
 tempOut2="tempOut2$$"
 tempOut3="tempOut3$$"
+resultMatrix="resultMatrix$$"
 
 ############################
 #  MATRIX OPERATIONS
@@ -143,32 +144,33 @@ addMatrices(){
             temp1=$(cut -f"$j" "$tempOut1")
             temp2=$(cut -f"$j" "$tempOut2")
             temp3=$(expr $temp1 + $temp2)
-            echo $temp3 | tr '\n' '\t' >> "$tempOut3"
+            echo $temp3 | tr '\n' '\t' >> "$resultMatrix"
         done
 
         #remove the trailing tab and add a new line
-        truncate -s-1 "$tempOut3"
-        echo >> "$tempOut3"
+        truncate -s-1 "$resultMatrix"
+        echo >> "$resultMatrix"
 
     done
 
-    cat "$tempOut3"
+    #print result
+    cat "$resultMatrix"
 }
 
 #  MULTIPLY
-#               RxC
 #  Takes an MxN and NxP matrix and produce an MxP matrix.
 #  Returns an error if the number of columns of matrix 1 
 #  does not equal the number of rows of matrix 2
 multiplyMatrices(){
     
     # transpose matrix 2 so we can use rows instead of columns
-    transpose $2 >>"$tempOut3"
+    transpose $2 >"$tempOut3"
 
     #calculate and save matrix dimensions
     printDimensions $1 > "$tempOut1"
     printDimensions "$tempOut3" > "$tempOut2"
 
+    #grab dimensions of each matrix for size comparison
     cols1=$(cut -d " " -f2 "$tempOut1")
     rows1=$(cut -d " " -f1 "$tempOut1")
     cols2=$(cut -d " " -f2 "$tempOut2")
@@ -181,12 +183,51 @@ multiplyMatrices(){
         cleanupTempFiles
         exit 1
     fi   
-
+    
     #for each row i in M1
         # for each row j in M2
-            #sum: M1 ix1 * M2 jx1 + M1 ix2 * M2 jx2 + ... M1 ixN * M2 jxN
-            #store in M3 ixj
+            #for each column k
+                #sum += M1 ixk * M2 jxk
+            #store sum in M3 ixj    
 
+    for ((i = 1; i <= "rows1"; i++)); do
+
+        #store matrix 1 row in temp file
+        head -"$i" $1 | tail -1 > "$tempOut1"
+
+        for ((j = 1; j <= "rows2"; j++)); do
+
+            #store transposed matrix 2 row in temp file
+            # $2 is the original matrix, $tempOut3 is the transposed matrix
+            head -"$j" "$tempOut3" | tail -1 > "$tempOut2"
+
+            #expressely declare total as integer to avoid treating things as strings
+            declare -i total=0
+
+            for ((k = 1; k <= "cols1"; k++)); do
+                
+                #grab the value at each column, multiply, and store in total
+                a=$(cut -f"$k" "$tempOut1")
+                b=$(cut -f"$k" "$tempOut2")
+                c=$(expr "$a" '*' "$b")
+                total=$(expr "$total"+"$c")
+
+            done
+            
+            #add the total sum of the dot multiplication to the result matrix output file
+            echo "$total" | tr '\n' '\t' >> "$resultMatrix"
+
+        done
+
+        #after each row of result matrix,
+        #truncate to remove the trailing tab and add a new line
+        truncate -s-1 "$resultMatrix"
+        echo >> "$resultMatrix"
+
+    done
+
+    cat "$resultMatrix"
+    cleanupTempFiles
 }
 
 ############################
@@ -302,6 +343,10 @@ cleanupTempFiles() {
     if test -e $tempOut3; then
         rm -f $tempOut3
     fi
+
+    if test -e $resultMatrix; then
+        rm -f $resultMatrix
+    fi
 }
 
 ############################
@@ -340,6 +385,7 @@ elif [ "$1" = "multiply" ]; then
     checkMatrixValidity $inputMatrix2
     multiplyMatrices $inputMatrix1 $inputMatrix2
     cleanupTempFiles
+
 else
     echo "Bad command" 1>&2
     cleanupTempFiles
