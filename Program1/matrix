@@ -1,0 +1,347 @@
+#!/bin/bash
+
+############################
+#  TEMP FILES
+############################
+inputMatrix1="inputMatrix1$$"
+inputMatrix2="inputMatrix2$$"
+tempOut1="tempOut1$$"
+tempOut2="tempOut2$$"
+tempOut3="tempOut3$$"
+
+############################
+#  MATRIX OPERATIONS
+############################
+
+#  DIMS
+#  Prints the dimensions of a matrix as the number of rows,
+#  followed by a space, then the number of columns.
+printDimensions() {
+    rows=0
+    cols=0
+
+    #grab the first row to count columns
+    read matrixLine <$1
+    for i in $matrixLine; do
+        cols=$(expr $cols + 1)
+    done
+
+    #grab each row to count rows
+    while read matrixLine; do
+        #echo "$matrixLine"
+        rows=$(expr $rows + 1)
+    done <$1
+
+    printf "$rows $cols\n"
+    return 0
+}
+
+#  TRANSPOSE
+#  Reflects the elements of the passed matrix along the main diagonal
+#  i.e. an MxN matrix will become an NxM matrix
+#  and the values along the main diagonal will remain unchanged.
+
+transpose() {
+    cols=0
+
+    #grab the first row to count columns
+    read matrixLine <$1
+    for i in $matrixLine; do
+        cols=$(expr $cols + 1)
+    done
+
+    #paste serially into stdout
+    for ((i = 1; i <= cols; i++)); do
+        cut -f"$i" "$1" | paste -s
+    done
+}
+
+#  MEAN
+#  Takes an MxN matrix and return an 1xN row vector,
+#  where the first element is the mean of column one,
+#  the second element is the mean of column two, and so on.
+
+mean() {
+
+    # transpose the matrix so we can sum rows instead of columns
+    transpose $1 >>"$tempOut1"
+
+    #read through each row, calcing the average
+    while read matrixLine; do
+        total=0
+        count=0
+        avg=0
+        remainder=0
+
+        #sum and count each line
+        for i in $matrixLine; do
+            total=$(expr $total + $i)
+            count=$(expr $count + 1)
+        done
+
+        #calculate the integer arithmetic average
+        avg=$(expr $total / $count)
+
+        #calculate the remainder. If it's greater than 5, then we will need to round
+        remainder=$(expr $total '*' 10 / $count % 10)
+
+        #if the average is positive and we need to round, add 1 to average
+        if (( avg > 0 )) && (( remainder >= 5 )); then
+            avg=$(expr $avg + 1)
+
+        #if average is negative, subtract 1
+        elif (( avg < 0 )) && (( remainder '*' -1 >= 5 )); then
+            avg=$(expr $avg - 1)
+        fi
+
+        #store each average in tempOut2
+        echo $avg | tr '\n' '\t' >> "$tempOut2"
+        
+    done <"$tempOut1"
+
+    #remove last character in the file (in this case, trailing tab)
+    truncate -s-1 "$tempOut2"
+
+    #add a newline to the end of the file
+    echo >> "$tempOut2"
+
+    #output averages to stdout
+    cat "$tempOut2"
+
+    cleanupTempFiles
+}
+
+#  ADD
+#  Takes two MxN matrices and add them together element-wise to produce an MxN matrix
+#  Returns an error if the matrices do not have the same dimensions.
+addMatrices(){
+    
+    #calculate and save matrix dimensions
+    printDimensions $1 > "$tempOut1"
+    printDimensions $2 > "$tempOut2"
+
+    #if the dimensions are not identical, error
+    cmp -s "$tempOut1" "$tempOut2"
+    if [[ $? != 0 ]]; then
+        echo "Matrices are different sizes" 1>&2
+        cleanupTempFiles
+        exit 1
+    fi
+
+    #grab matrix dimentions into variables to use in for loops
+    rows=$(cut -d " " -f1 "$tempOut1")
+    cols=$(cut -d " " -f2 "$tempOut1")
+
+    for ((i = 1; i <= rows; i++)); do
+
+        #store each row in temp files
+        head -"$i" $1 | tail -1 > "$tempOut1"
+        head -"$i" $2 | tail -1 > "$tempOut2"
+
+        #grab the value at each column, sum, and store
+        for ((j = 1; j <= cols; j++)); do
+            temp1=$(cut -f"$j" "$tempOut1")
+            temp2=$(cut -f"$j" "$tempOut2")
+            temp3=$(expr $temp1 + $temp2)
+            echo $temp3 | tr '\n' '\t' >> "$tempOut3"
+        done
+
+        #remove the trailing tab and add a new line
+        truncate -s-1 "$tempOut3"
+        echo >> "$tempOut3"
+
+    done
+
+    cat "$tempOut3"
+}
+
+#  MULTIPLY
+#               RxC
+#  Takes an MxN and NxP matrix and produce an MxP matrix.
+#  Returns an error if the number of columns of matrix 1 
+#  does not equal the number of rows of matrix 2
+multiplyMatrices(){
+    
+    # transpose matrix 2 so we can use rows instead of columns
+    transpose $2 >>"$tempOut3"
+
+    #calculate and save matrix dimensions
+    printDimensions $1 > "$tempOut1"
+    printDimensions "$tempOut3" > "$tempOut2"
+
+    cols1=$(cut -d " " -f2 "$tempOut1")
+    rows1=$(cut -d " " -f1 "$tempOut1")
+    cols2=$(cut -d " " -f2 "$tempOut2")
+    rows2=$(cut -d " " -f1 "$tempOut2")
+
+    #the number of columns of matrix 1 must equal the number of cols of transposed matrix 2
+    #if they don't match, then error
+    if [[ $cols1 != $cols2 ]]; then
+        echo "Matrices are incompatible sizes" 1>&2
+        cleanupTempFiles
+        exit 1
+    fi   
+
+    #for each row i in M1
+        # for each row j in M2
+            #sum: M1 ix1 * M2 jx1 + M1 ix2 * M2 jx2 + ... M1 ixN * M2 jxN
+            #store in M3 ixj
+
+}
+
+############################
+#  HELPER FUNCTIONS
+############################
+
+#  for dims/transpose/mean
+#  grabs input matrix and saves to temp file
+#  gives error if there are 2 or more arguments
+#  does NOT check matrix validity
+grabOneMatrixInput() {
+    if [ "$#" = "1" ]; then
+        cat >"$inputMatrix1"
+    elif [ "$#" = "2" ]; then
+        # "2>/dev/null || true" suppresses error if file doesn't exist
+        # checkMatrixValidity will catch the error
+        # reference: https://serverfault.com/a/153893
+        cp $2 "$inputMatrix1" 2>/dev/null || true
+    else
+        echo "Too many or not enough args" 1>&2
+        exit 1
+    fi
+}
+
+#  for add/multiply
+#  grabs input matrices and saves to temp files
+#  gives error if there are not exactly 2 arguments
+#  does NOT check matrix validity
+grabTwoMatrixInput() {
+
+    if [ "$#" != "3" ]; then
+        echo "Too many or not enough args" 1>&2
+        exit 1
+    else
+        cp $2 "$inputMatrix1" 2>/dev/null || true
+        cp $3 "$inputMatrix2" 2>/dev/null || true
+    fi
+}
+
+# checks if argument is a valid matrix. Returns errors if:
+# -matrix is empty
+# -the final character on a line is a tab
+# -there are empty lines
+# -there are non-integers
+#
+# upon closer reading of the assignment specs it looks like I didn't actually need to do this
+# but it was good practice for using regex so I'm going to keep it in here
+
+checkMatrixValidity() {
+
+    #checks if file exists
+    test -f $1
+    if [[ $? != 0 ]]; then
+        echo "File does not exist" 1>&2
+        cleanupTempFiles
+        exit 1
+    fi
+
+    #checks if file is empty
+    grep -q '[^[:space:]]' $1
+    if [[ $? != 0 ]]; then
+        echo "File is empty" 1>&2
+        cleanupTempFiles
+        exit 1
+    fi
+
+    #checks for non-integers
+    #returns 0 if it matches anything that is not 0-9, +, -, space, or tab;
+    grep -q '[^ 	0-9+-]' $1
+    if [[ $? == 0 ]]; then
+        echo "Non-numbers present" 1>&2
+        cleanupTempFiles
+        exit 1
+    fi
+
+    #checks for lines ending with tab
+    grep -q '	$' $1
+    if [[ $? == 0 ]]; then
+        echo "Line ending with tab" 1>&2
+        cleanupTempFiles
+        exit 1
+    fi
+
+    #checks for blank lines
+    grep -q '^\s*$' $1
+    if [[ $? == 0 ]]; then
+        echo "Line with nothing" 1>&2
+        cleanupTempFiles
+        exit 1
+    fi
+}
+
+#  Cleanup
+#  Checks if temp files exits, and deletes them if they do
+
+cleanupTempFiles() {
+    if test -e $inputMatrix1; then
+        rm -f $inputMatrix1
+    fi
+
+    if test -e $inputMatrix2; then
+        rm -f $inputMatrix2
+    fi
+
+    if test -e $tempOut1; then
+        rm -f $tempOut1
+    fi
+
+    if test -e $tempOut2; then
+        rm -f $tempOut2
+    fi
+
+    if test -e $tempOut3; then
+        rm -f $tempOut3
+    fi
+}
+
+############################
+#   MAIN PROGRAM
+############################
+trap "cleanupTempFiles; echo 'SIGNAL received: Deleting temp file then exiting!'; exit 1" SIGHUP SIGINT SIGTERM
+
+if [ "$1" = "dims" ]; then
+    grabOneMatrixInput "$@" #pass in all arguments
+    checkMatrixValidity $inputMatrix1
+    printDimensions $inputMatrix1
+    cleanupTempFiles
+
+elif [ "$1" = "transpose" ]; then
+    grabOneMatrixInput "$@"
+    checkMatrixValidity $inputMatrix1
+    transpose $inputMatrix1
+    cleanupTempFiles
+
+elif [ "$1" = "mean" ]; then
+    grabOneMatrixInput "$@"
+    checkMatrixValidity $inputMatrix1
+    mean $inputMatrix1
+    cleanupTempFiles
+
+elif [ "$1" = "add" ]; then
+    grabTwoMatrixInput "$@"
+    checkMatrixValidity $inputMatrix1
+    checkMatrixValidity $inputMatrix2
+    addMatrices $inputMatrix1 $inputMatrix2
+    cleanupTempFiles
+
+elif [ "$1" = "multiply" ]; then
+    grabTwoMatrixInput "$@"
+    checkMatrixValidity $inputMatrix1
+    checkMatrixValidity $inputMatrix2
+    multiplyMatrices $inputMatrix1 $inputMatrix2
+    cleanupTempFiles
+else
+    echo "Bad command" 1>&2
+    cleanupTempFiles
+    exit 1
+fi
