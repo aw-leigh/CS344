@@ -3,12 +3,17 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>
-#include <dirent.h> 
+#include <unistd.h>     /* process IDs */
+#include <dirent.h>     /* finding directories */
+#include <time.h>       /* time output */
+#include <pthread.h>    /* mutex and threads*/
 
 /* no magic numbers here! */
 #define numberOfRooms 7
 #define maxConnections 6
+
+/* mutex for time function */
+pthread_mutex_t timeMutex = PTHREAD_MUTEX_INITIALIZER;
 
 /* reference: https://stackoverflow.com/a/1921557 */
 typedef int bool;
@@ -30,6 +35,8 @@ void findNewestDirectory(char newestFolder[]);
 void makeArrayFromFiles(struct room * rooms[], char newestFolder[]);
 void printLocation(struct room * rooms[], int roomNumber);
 int getLocation(struct room * rooms[], char * location);
+void runGame(struct room * rooms[]);
+void* printTime();
 
 /**********************/
 /**** MAIN FUNCTION ***/
@@ -37,68 +44,23 @@ int getLocation(struct room * rooms[], char * location);
 
 int main()
 {
-    int i, j;
-    int steps = 0;
-    int location = 0;
+    int i;
     struct room * rooms[numberOfRooms];
     char newestFolder[30];
     memset(newestFolder, '\0', 30);
-    char pathToVictory[1024];
-    memset(pathToVictory, '\0', 1024);
+
+    /* lock mutex so that main get the thread */
+    pthread_mutex_lock(&timeMutex);
 
     findNewestDirectory(newestFolder);
     makeArrayFromFiles(rooms, newestFolder);
-
-    /*************************/
-    /****** GAME LOGIC *******/
-    /*************************/
-
-    bool goodInput;
-    char *buffer;
-    size_t bufferSize = 64;
-    size_t input;
-
-    buffer = (char *)calloc(bufferSize, sizeof(char));
-    if(buffer == NULL){
-        perror("Unable to allocate buffer\n");
-        exit(1);
-    }
-    
-    do{
-        goodInput = false;
-        printLocation(rooms, location);
-
-        input = getline(&buffer, &bufferSize, stdin);   
-        buffer[strcspn (buffer, "\n")] = '\0'; /* strip the trailing newline */
-        
-        for(i = 0; i < rooms[location]->numConnections; i++){
-            
-            /* compare input to connections */
-            if(strcmp(buffer, rooms[location]->connectionNames[i]) == 0){
-                location = getLocation(rooms, buffer);
-                goodInput = true;
-                steps++;
-                strcat(pathToVictory,buffer);
-                strcat(pathToVictory,"\n");
-            }
-        }
-        if(goodInput == false){
-            printf("\nHUH? I DON’T UNDERSTAND THAT ROOM. TRY AGAIN.\n");
-        }
-        printf("\n");
-
-    }while(strcmp(rooms[location]->roomType, "END_ROOM") != 0);
-
-    printf("YOU HAVE FOUND THE END ROOM. CONGRATULATIONS!\n");
-    printf("YOU TOOK %d STEPS. YOUR PATH TO VICTORY WAS:\n", steps);
-    printf("%s",pathToVictory);
+    runGame(rooms);
 
     /* always free allocated memory */
     for(i = 0; i < numberOfRooms; i++){
         free(rooms[i]);
     }
-    free(buffer);
-
+    
     return 0;
 }
 
@@ -234,4 +196,76 @@ int getLocation(struct room * rooms[], char * location){
         }
     }
     return -1;
+}
+
+/* runs the actual game, printing to console and asking for input */
+void runGame(struct room * rooms[]){
+    int i;
+    int steps = 0;
+    int location = 0;    
+    bool goodInput;
+    char *buffer;
+    size_t bufferSize = 64;
+    size_t input;
+    char pathToVictory[1024];
+    memset(pathToVictory, '\0', 1024);    
+
+    buffer = (char *)calloc(bufferSize, sizeof(char));
+    if(buffer == NULL){
+        perror("Unable to allocate buffer\n");
+        exit(1);
+    }
+
+    /* create a second thread, will not execute right away due to lock */
+    pthread_t timeThread;
+    pthread_create(&timeThread, NULL, printTime, NULL);
+
+    do{
+        goodInput = false;
+        printLocation(rooms, location);
+
+        input = getline(&buffer, &bufferSize, stdin);   
+        buffer[strcspn (buffer, "\n")] = '\0'; /* strip the trailing newline */
+        
+        for(i = 0; i < rooms[location]->numConnections; i++){
+            
+            /* compare input to connections */
+            if(strcmp(buffer, rooms[location]->connectionNames[i]) == 0){
+                location = getLocation(rooms, buffer);
+                goodInput = true;
+                steps++;
+                strcat(pathToVictory,buffer);
+                strcat(pathToVictory,"\n");
+            }
+            else if(strcmp(buffer, "time") == 0){
+                memset(buffer, '\0', bufferSize); /* clear buffer */
+                pthread_mutex_unlock(&timeMutex); /* unlock mutex so other thread can jump in */
+                pthread_join(timeThread, NULL); /* block main until timeThread finishes */
+                pthread_mutex_lock(&timeMutex); /* re-lock mutex for main */
+                pthread_create(&timeThread, NULL, printTime, NULL); /* re-create time thread */
+                goodInput = true;
+            }
+        }
+        if(goodInput == false){
+            printf("\nHUH? I DON’T UNDERSTAND THAT ROOM. TRY AGAIN.\n");
+        }
+        printf("\n");
+
+    }while(strcmp(rooms[location]->roomType, "END_ROOM") != 0);
+
+    printf("YOU HAVE FOUND THE END ROOM. CONGRATULATIONS!\n");
+    printf("YOU TOOK %d STEPS. YOUR PATH TO VICTORY WAS:\n", steps);
+    printf("%s",pathToVictory);
+
+    free(buffer);
+}
+
+void* printTime(){
+    /* this thread gets the lock */
+	pthread_mutex_lock(&timeMutex);
+
+    printf("This is the time function\n");
+
+	/* Unlock mutex and main to continue */
+	pthread_mutex_unlock(&timeMutex);
 }
