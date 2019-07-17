@@ -33,10 +33,11 @@ struct room
 
 void findNewestDirectory(char newestFolder[]);
 void makeArrayFromFiles(struct room * rooms[], char newestFolder[]);
-void printLocation(struct room * rooms[], int roomNumber);
+void printLocation(struct room * rooms[], int roomNumber, bool timeBool);
 int getLocation(struct room * rooms[], char * location);
 void runGame(struct room * rooms[]);
-void* printTime();
+void* exportTime();
+void printTime();
 
 /**********************/
 /**** MAIN FUNCTION ***/
@@ -167,18 +168,20 @@ void makeArrayFromFiles(struct room * rooms[], char newestFolder[]){
 }
 
 /* prints user interface with correct punctuation */
-void printLocation(struct room * rooms[], int roomNumber){
+void printLocation(struct room * rooms[], int roomNumber, bool timeBool){
     int i;
 
-    printf("CURRENT LOCATION: %s\n", rooms[roomNumber]->roomName);
-    printf("POSSIBLE CONNECTIONS: ");
-    for(i = 0; i < rooms[roomNumber]->numConnections; i++){
-        printf("%s", rooms[roomNumber]->connectionNames[i]);
-        if(i == rooms[roomNumber]->numConnections - 1){
-            printf(".\n");
-        }
-        else{
-            printf(", ");
+    if(timeBool == false){
+        printf("CURRENT LOCATION: %s\n", rooms[roomNumber]->roomName);
+        printf("POSSIBLE CONNECTIONS: ");
+        for(i = 0; i < rooms[roomNumber]->numConnections; i++){
+            printf("%s", rooms[roomNumber]->connectionNames[i]);
+            if(i == rooms[roomNumber]->numConnections - 1){
+                printf(".\n");
+            }
+            else{
+                printf(", ");
+            }
         }
     }
     /* printf("Debug: Type = %s\n", rooms[roomNumber]->roomType); */
@@ -204,6 +207,7 @@ void runGame(struct room * rooms[]){
     int steps = 0;
     int location = 0;    
     bool goodInput;
+    bool timeBool = false; /* used to skip re-printing the room after user asks for time */
     char *buffer;
     size_t bufferSize = 64;
     size_t input;
@@ -218,11 +222,12 @@ void runGame(struct room * rooms[]){
 
     /* create a second thread, will not execute right away due to lock */
     pthread_t timeThread;
-    pthread_create(&timeThread, NULL, printTime, NULL);
+    pthread_create(&timeThread, NULL, exportTime, NULL);
 
     do{
         goodInput = false;
-        printLocation(rooms, location);
+        printLocation(rooms, location, timeBool);
+        timeBool = false;
 
         input = getline(&buffer, &bufferSize, stdin);   
         buffer[strcspn (buffer, "\n")] = '\0'; /* strip the trailing newline */
@@ -242,8 +247,10 @@ void runGame(struct room * rooms[]){
                 pthread_mutex_unlock(&timeMutex); /* unlock mutex so other thread can jump in */
                 pthread_join(timeThread, NULL); /* block main until timeThread finishes */
                 pthread_mutex_lock(&timeMutex); /* re-lock mutex for main */
-                pthread_create(&timeThread, NULL, printTime, NULL); /* re-create time thread */
+                pthread_create(&timeThread, NULL, exportTime, NULL); /* re-create time thread */
+                printTime();
                 goodInput = true;
+                timeBool = true;
             }
         }
         if(goodInput == false){
@@ -260,12 +267,58 @@ void runGame(struct room * rooms[]){
     free(buffer);
 }
 
-void* printTime(){
+/* time format: 1:03pm, Tuesday, September 13, 2016 */
+void* exportTime(){
     /* this thread gets the lock */
 	pthread_mutex_lock(&timeMutex);
 
-    printf("This is the time function\n");
+    int i = 0;
+    char * timeFilename = "currentTime.txt";
+    char timeString[128];
+    memset(timeString, '\0', 128);
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+
+    /* grab time string */
+    strftime(timeString, 128, "%I:%M%p, %A, %B %d, %G", &tm);
+    
+    /* set AM/PM to lowercase */
+    timeString[5] = tolower(timeString[5]);
+    timeString[6] = tolower(timeString[6]);
+
+    /* if there's a leading 0 on the hour, shift string to the left */
+    if(timeString[0] == 48){ /* '48' is ASCII of 0 */
+        while(timeString[i]){
+            timeString[i] = timeString[i+1];
+            i++;
+        }
+    }
+
+    /* open the file for writing (erroring if error), print the time, and close the file */
+    FILE *f = fopen(timeFilename, "w");
+    if (f == NULL)
+    {
+        printf("Error opening file!\n");
+        exit(1);
+    }
+    fprintf(f, "%s\n", timeString);
+    fclose(f);
 
 	/* Unlock mutex and main to continue */
 	pthread_mutex_unlock(&timeMutex);
+}
+
+void printTime(){
+
+    char buffer[255];
+    memset(buffer, '\0', 255);
+
+    FILE *f = fopen("currentTime.txt", "r");
+    if (f == NULL)
+    {
+        printf("Error opening file!\n");
+        exit(1);
+    }
+    fgets(buffer,255,f);
+    printf("\n %s", buffer);
 }
