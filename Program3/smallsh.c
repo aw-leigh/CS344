@@ -9,8 +9,29 @@
 #include <stdbool.h> //for bools
 #include <pwd.h> //for finding HOME directory
 
+void startBackgroundProcess(char* userInputArray[], int numArguments){
 
-bool executeInput(char* userInputArray[], int numArguments){
+}
+
+int startForegroudProcess(char* userInputArray[], int numArguments){
+    pid_t pid = fork();
+    int childExitMethod = -1337;
+
+    switch(pid){
+        case(-1):
+            perror("could not fork!");
+            exit(1);
+            break;
+        case(0): //child
+            //input redierection with dup2()
+            //exec() here
+            break;
+    }
+    waitpid(pid, &childExitMethod, 0);
+    return childExitMethod;
+}
+
+bool executeInput(char* userInputArray[], int numArguments, int * status, bool * signalFlag){
     if(strcmp(userInputArray[0], "exit") == 0){
         //kill all children here
 
@@ -25,13 +46,18 @@ bool executeInput(char* userInputArray[], int numArguments){
         }
     }
     else if (strcmp(userInputArray[0], "status") == 0){
-        //report status here
+        if(*signalFlag == false){
+            char * exitStatusMessage = "exit value ";
+            int test = 11;
+            write(STDOUT_FILENO, exitStatusMessage, 11);
+        }
     } 
     else {//non-built in function
         if(strcmp(userInputArray[numArguments], "&") == 0){
-            //background execution
+            startBackgroundProcess(userInputArray, numArguments);
         } else{
-            //foreground execution
+            *status = startForegroudProcess(userInputArray, numArguments);
+            *signalFlag = false;
         }
     }
     return false;
@@ -47,6 +73,8 @@ void mainShellLoop(){
     int numArguments = 0;
     size_t bufferSize = 0;
     int numCharsEntered = -1337;
+    int fgExitStatus = 0;
+    bool signalFlag = false;
     bool breakFlag = false;
 
     //main while loop for shell, runs forever until terminated
@@ -75,7 +103,7 @@ void mainShellLoop(){
             token = strtok(NULL, " ");
         }
 
-        breakFlag = executeInput(userInputArray, numArguments);
+        breakFlag = executeInput(userInputArray, numArguments, &fgExitStatus, &signalFlag);
         
         // print input, for debugging
         // for(int i = 0; i < numArguments; i++){
