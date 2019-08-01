@@ -26,7 +26,7 @@ void findRedirections(char *userInputArray[], int numArguments, int *inPipeLocat
 }
 
 //returns -8888 if file could not be opened, otherwise returns file descriptor
-int openFileForReading(char *userInputArray[], int *numArguments, int * inFileDescriptor, int inPipeLocation, int *status, bool *signalFlag)
+int openFileForReading(char *userInputArray[], int *numArguments, int * inFileDescriptor, int inPipeLocation)
 {
 
     //grab file path from the token following < and open file
@@ -35,12 +35,8 @@ int openFileForReading(char *userInputArray[], int *numArguments, int * inFileDe
     //error and exit if file can't open
     if (*inFileDescriptor < 0)
     {
-        *status = 1;
-        *signalFlag = false;
-        char *exitMessage = "cannot open file for reading\n";
-        write(STDOUT_FILENO, exitMessage, 29);
-        fflush(stdout);
-        return -8888;
+        perror("Unable to open input file\n");
+		return -8888;          
     }
     //otherwise, remove < symbol and filepath from array,
     //shifting everything over 2 places
@@ -54,20 +50,16 @@ int openFileForReading(char *userInputArray[], int *numArguments, int * inFileDe
 }
 
 //returns -8888 if file could not be opened, otherwise returns file descriptor
-int openFileForWriting(char *userInputArray[], int *numArguments, int *outFileDescriptor, int outPipeLocation, int *status, bool *signalFlag)
+int openFileForWriting(char *userInputArray[], int *numArguments, int *outFileDescriptor, int outPipeLocation)
 {
-    //grab file path from the token following < and open file
+    //grab file path from the token following > and open file
     *outFileDescriptor = open(userInputArray[outPipeLocation + 1], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
 
     //error and exit if file can't open
     if (*outFileDescriptor < 0)
     {
-        *status = 1;
-        *signalFlag = false;
-        char *exitMessage = "cannot open file for writing\n";
-        write(STDOUT_FILENO, exitMessage, 29);
-        fflush(stdout);
-        return -8888;
+        perror("Unable to open output file\n");
+		return -8888;        
     }
     //otherwise, remove '>' symbol and filepath from array,
     //shifting everything over 2 places
@@ -103,18 +95,21 @@ void startForegroudProcess(char *userInputArray[], int numArguments, int *status
         findRedirections(userInputArray, numArguments, &inPipeLocation, &outPipeLocation);
         if (inPipeLocation != -1337)
         {
-            openFileForReading(userInputArray, &numArguments, &inFileDescriptor, inPipeLocation, status, signalFlag);
-            if (inFileDescriptor == -8888)
+            if (openFileForReading(userInputArray, &numArguments, &inFileDescriptor, inPipeLocation) == -8888)
             { //could not open file
-                return;
+                *status = 1;
+                *signalFlag = false;
+                exit(1);
             }
             dup2(3, 0);
         }
         if (outPipeLocation != -1337)
         {
-            if (openFileForWriting(userInputArray, &numArguments, &outFileDescriptor, outPipeLocation, status, signalFlag) == -8888)
+            if (openFileForWriting(userInputArray, &numArguments, &outFileDescriptor, outPipeLocation) == -8888)
             { //could not open file
-                return;
+                *status = 1;
+                *signalFlag = false;
+                exit(1);
             }
             if (inPipeLocation != -1337)
             { //files open for both reading and writing
@@ -127,7 +122,13 @@ void startForegroudProcess(char *userInputArray[], int numArguments, int *status
         }
         //exec()
         userInputArray[numArguments] = NULL;
-        execvp(userInputArray[0], userInputArray);
+        if(execvp(userInputArray[0], userInputArray) == -1){
+            *status = 1;
+            *signalFlag = false;
+            printf("command \"%s\" is not a valid command\n", userInputArray[0]);
+            fflush(stdout);
+            return;
+        }
         close(inFileDescriptor);
         close(outFileDescriptor);
         break;
@@ -285,10 +286,9 @@ void mainShellLoop()
 
 int main(int argc, char **argv)
 {
+    
     // Run command loop.
     mainShellLoop();
-
-    // Perform any shutdown/cleanup.
 
     return 0;
 }

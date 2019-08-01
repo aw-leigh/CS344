@@ -7,4 +7,4 @@ test: default
 	p3testscript > mytestresults 2>&1
 
 clean:
-	@rm -rf smallsh junk junk2
+	@rm -rf smallsh junk junk2 mytestresults
