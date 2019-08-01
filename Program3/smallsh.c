@@ -23,7 +23,7 @@ int startForegroudProcess(char* userInputArray[], int numArguments){
             exit(1);
             break;
         case(0): //child
-            //input redierection with dup2()
+            //input redirection with dup2()
             //exec() here
             break;
     }
@@ -32,11 +32,14 @@ int startForegroudProcess(char* userInputArray[], int numArguments){
 }
 
 bool executeInput(char* userInputArray[], int numArguments, int * status, bool * signalFlag){
+    
+    /*** EXIT ***/
     if(strcmp(userInputArray[0], "exit") == 0){
         //kill all children here
 
         return true; //set flag to break out of loop in main
     } 
+    /*** CD ***/
     else if (strcmp(userInputArray[0], "cd") == 0){
         if(userInputArray[1] == NULL){ //change to home directory
             struct passwd * userInfo = getpwuid(getuid()); //get home directory as char *
@@ -45,14 +48,23 @@ bool executeInput(char* userInputArray[], int numArguments, int * status, bool *
             chdir(userInputArray[1]); //change to specified directory
         }
     }
+
+    /*** STATUS ***/
     else if (strcmp(userInputArray[0], "status") == 0){
         if(*signalFlag == false){
             char * exitStatusMessage = "exit value ";
-            int test = 11;
+            int statusHex = 0x30; // 0 in hex, refernece: https://stackoverflow.com/a/9597106
+            statusHex += *status; // add the last exit status number to the hex value
+            char buff[] = {1, statusHex, '\n'};
             write(STDOUT_FILENO, exitStatusMessage, 11);
+            fflush(stdout);
+            write(STDOUT_FILENO, buff, sizeof(buff));
+            fflush(stdout);
         }
     } 
-    else {//non-built in function
+
+    /*** OTHER COMMAND ***/
+    else {
         if(strcmp(userInputArray[numArguments], "&") == 0){
             startBackgroundProcess(userInputArray, numArguments);
         } else{
@@ -81,12 +93,14 @@ void mainShellLoop(){
     while(1){
         while(1){ //prompt for input, using getline as per reading 3.3
             write(STDOUT_FILENO, prompt, 2);
+            fflush(stdout);
             numCharsEntered = getline(&userInput, &bufferSize, stdin);
-            if (numCharsEntered == -1)
+            if (numCharsEntered == -1){
                 clearerr(stdin);
-            else
+            } else {
                 userInput[strcspn(userInput, "\n")] = '\0'; //remove trailing newline
                 break;
+            }
         }
         //if input is empty or a comment line,
         //loop for input again, ignoring everything below
