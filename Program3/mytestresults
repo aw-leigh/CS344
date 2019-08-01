@@ -1,0 +1,166 @@
+PRE-SCRIPT INFO
+  Grading Script PID: 40695
+  Note: your smallsh will report a different PID when evaluating $$
+: BEGINNING TEST SCRIPT
+: 
+: --------------------
+: Using comment (5 points if only next prompt is displayed next)
+: : 
+: 
+: --------------------
+: ls (10 points for returning dir contents)
+: makefile
+mytestresults
+p3testscript
+smallsh
+smallsh.c
+: 
+: 
+: --------------------
+: ls out junk
+: : 
+: 
+: --------------------
+: cat junk (15 points for correctly returning contents of junk)
+: junk
+makefile
+mytestresults
+p3testscript
+smallsh
+smallsh.c
+: 
+: 
+: --------------------
+: wc in junk (15 points for returning correct numbers from wc)
+:  6  6 59
+: 
+: 
+: --------------------
+: wc in junk out junk2; cat junk2 (10 points for returning correct numbers from wc)
+: :  6  6 59
+: 
+: 
+: --------------------
+: test -f badfile (10 points for returning error value of 1, note extraneous &)
+: : exit value 1
+: 
+: 
+: --------------------
+: wc in badfile (10 points for returning text error)
+: cannot open file for reading
+wc: <: No such file or directory
+wc: badfile: No such file or directory
+0 0 0 total
+: 
+: 
+: --------------------
+: badfile (10 points for returning text error)
+: : 
+: 
+: --------------------
+: sleep 100 background (10 points for returning process ID of sleeper)
+: : 
+: 
+: --------------------
+: pkill -signal SIGTERM sleep (10 points for pid of killed process, 10 points for signal)
+: (Ignore message about Operation Not Permitted)
+: pkill: killing pid 1498 failed: Operation not permitted
+pkill: killing pid 3896 failed: Operation not permitted
+pkill: killing pid 18826 failed: Operation not permitted
+pkill: killing pid 33317 failed: Operation not permitted
+pkill: killing pid 34776 failed: Operation not permitted
+pkill: killing pid 37484 failed: Operation not permitted
+pkill: killing pid 40646 failed: Operation not permitted
+: 
+: 
+: --------------------
+: sleep 1 background (10 pts for pid of bg ps when done, 10 for exit value)
+: : : 
+: 
+: --------------------
+: pwd
+: /nfs/stak/users/wilsoan6/Term4/344OS/Program3
+: 
+: 
+: --------------------
+: cd
+: : 
+: 
+: --------------------
+: pwd (10 points for being in the HOME dir)
+: /nfs/stak/users/wilsoan6
+: 
+: 
+: --------------------
+: mkdir testdir$$
+: mkdir: cannot create directory ‘testdir$$’: File exists
+: 
+: 
+: --------------------
+: cd testdir$$
+: : 
+: 
+: --------------------
+: pwd (5 points for being in the newly created dir)
+: /nfs/stak/users/wilsoan6/testdir$$
+: --------------------
+: Testing foreground-only mode (20 points for entry & exit text AND ~5 seconds between times)
+: kill: cannot find process "$$"
+: Thu Aug  1 14:33:59 PDT 2019
+: : Thu Aug  1 14:33:59 PDT 2019
+: kill: cannot find process "$$"
+: : 
+: 
+: --------------------
+: sleep 100 background (10 points for returning process ID of sleeper)
+: : 
+: 
+: --------------------
+: pkill -signal SIGTERM sleep (10 points for pid of killed process, 10 points for signal)
+: (Ignore message about Operation Not Permitted)
+: pkill: killing pid 1498 failed: Operation not permitted
+pkill: killing pid 3896 failed: Operation not permitted
+pkill: killing pid 18826 failed: Operation not permitted
+pkill: killing pid 33317 failed: Operation not permitted
+pkill: killing pid 34776 failed: Operation not permitted
+pkill: killing pid 37484 failed: Operation not permitted
+pkill: killing pid 40646 failed: Operation not permitted
+: 
+: 
+: --------------------
+: sleep 1 background (10 pts for pid of bg ps when done, 10 for exit value)
+: : : 
+: 
+: --------------------
+: pwd
+: /nfs/stak/users/wilsoan6/Term4/344OS/Program3
+: 
+: 
+: --------------------
+: cd
+: : 
+: 
+: --------------------
+: pwd (10 points for being in the HOME dir)
+: /nfs/stak/users/wilsoan6
+: 
+: 
+: --------------------
+: mkdir testdir$$
+: mkdir: cannot create directory ‘testdir$$’: File exists
+: 
+: 
+: --------------------
+: cd testdir$$
+: : 
+: 
+: --------------------
+: pwd (5 points for being in the newly created dir)
+: /nfs/stak/users/wilsoan6/testdir$$
+: --------------------
+: Testing foreground-only mode (20 points for entry & exit text AND ~5 seconds between times)
+: kill: cannot find process "$$"
+: Thu Aug  1 14:34:01 PDT 2019
+: : Thu Aug  1 14:34:01 PDT 2019
+: kill: cannot find process "$$"
+: 
