@@ -10,6 +10,10 @@
 #include <stdbool.h> //for bools
 #include <pwd.h>     //for finding HOME directory
 
+// global variable
+pid_t foregroundPID = -1;
+bool foregroundOnlyMode = false;
+
 
 void printExitStatus(int * status, bool * signalFlag){
     char *exitStatusMessage;
@@ -251,6 +255,8 @@ void startForegroudProcess(char *userInputArray[], int numArguments, int *status
             fflush(stdout);
             return;
         }
+        foregroundPID = getpid();
+        printf("%d ", foregroundPID);
         close(inFileDescriptor);
         close(outFileDescriptor);
         break;
@@ -269,6 +275,7 @@ void startForegroudProcess(char *userInputArray[], int numArguments, int *status
         *signalFlag = true;
         *status = WTERMSIG(childExitMethod);
     }
+    foregroundPID = -1;
 }
 
 bool executeInput(char *userInputArray[], int numArguments, int *status, bool *signalFlag)
@@ -304,6 +311,13 @@ bool executeInput(char *userInputArray[], int numArguments, int *status, bool *s
     /*** OTHER COMMAND ***/
     else
     {
+        if(foregroundOnlyMode == true){ //remove trailing ampersand if any
+            if (strcmp(userInputArray[numArguments - 1], "&") == 0){
+                userInputArray[numArguments - 1] = "\0";
+                numArguments--;
+            }
+        }
+        
         if (strcmp(userInputArray[numArguments - 1], "&") == 0)
         {
             startBackgroundProcess(userInputArray, numArguments);
@@ -355,6 +369,7 @@ void mainShellLoop()
         //loop for input again, ignoring everything below
         if (userInput[0] == '\0' || userInput[0] == '#')
         {
+            findZombies(&fgExitStatus, &signalFlag);
             continue;
         }
 
@@ -363,6 +378,24 @@ void mainShellLoop()
         token = strtok(userInput, " ");
         while (token != NULL)
         {
+            if(strstr(token, "&&") != NULL){ //if we find $$
+                //remove $$
+                char newString[512];
+                memset(newString, '\0', 512);
+                memcpy(newString, token, strlen(token) - 2);
+                newString[strlen(token) - 2] = '\0';
+
+                //get pid as string
+                int pid = getpid();
+                char pidString[32];
+                memset(pidString, '\0', 32);
+                sprintf(pidString, "%d", pid);
+
+                //concat
+                strcat(newString, pidString);
+                
+                token = newString;
+            }
             userInputArray[numArguments] = token;
             numArguments++;
             token = strtok(NULL, " ");
@@ -389,8 +422,52 @@ void mainShellLoop()
     }
 }
 
+void killForegroundProcess(){
+
+    char * exitMessage = "terminated by signal 2\n";
+    int messageSize = 23;
+    write(STDOUT_FILENO, exitMessage, messageSize);
+
+    if(foregroundPID != -1){
+        kill(foregroundPID, SIGKILL);
+        foregroundPID = -1;
+    }
+    
+}
+
+void toggleForegroundOnly(){
+    char * exitMessage;
+    int messageSize;
+    
+    if(foregroundOnlyMode == true){
+        foregroundOnlyMode = false;
+        exitMessage = "Exiting foreground-only mode\n";
+        messageSize = 29;
+    } else {
+        foregroundOnlyMode = true;
+        exitMessage = "Entering foreground-only mode (& is now ignored)\n";
+        messageSize = 49;
+    }
+
+    write(STDOUT_FILENO, exitMessage, messageSize);
+}
+
 int main(int argc, char **argv)
 {
+    // makes SIGINT run killForegroundProcess() instead of default action
+    struct sigaction sigintKillForeground = {{0}};
+    sigemptyset(&sigintKillForeground.sa_mask);
+    sigintKillForeground.sa_flags = SA_RESTART;
+    sigintKillForeground.sa_handler = killForegroundProcess; //don't do the default action
+    sigaction(SIGINT, &sigintKillForeground, NULL); 
+
+    // makes SIGSTP run toggleForegroundOnly() instead of default action
+    struct sigaction sigstpToggleFGonly = {{0}};
+    sigemptyset(&sigstpToggleFGonly.sa_mask);
+    sigstpToggleFGonly.sa_flags = 0;
+    sigstpToggleFGonly.sa_handler = toggleForegroundOnly; //don't do the default action
+    sigaction(SIGTSTP, &sigstpToggleFGonly, NULL); 
+
 
     // Run command loop.
     mainShellLoop();
