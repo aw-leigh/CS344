@@ -378,7 +378,7 @@ void mainShellLoop()
         token = strtok(userInput, " ");
         while (token != NULL)
         {
-            if(strstr(token, "&&") != NULL){ //if we find $$
+            if(strstr(token, "$$") != NULL){ //if we find $$
                 //remove $$
                 char newString[512];
                 memset(newString, '\0', 512);
@@ -395,6 +395,7 @@ void mainShellLoop()
                 strcat(newString, pidString);
                 
                 token = newString;
+                printf("%s\n", token);
             }
             userInputArray[numArguments] = token;
             numArguments++;
@@ -402,11 +403,6 @@ void mainShellLoop()
         }
 
         breakFlag = executeInput(userInputArray, numArguments, &fgExitStatus, &signalFlag);
-
-        // print input, for debugging
-        // for(int i = 0; i < numArguments; i++){
-        //     printf("%d: %s\n ",i, userInputArray[i]);
-        // }
 
         //free input, reset arrray and counter before next loop
         free(userInput);
