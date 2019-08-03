@@ -1,5 +1,5 @@
 PRE-SCRIPT INFO
-  Grading Script PID: 40695
+  Grading Script PID: 45578
   Note: your smallsh will report a different PID when evaluating $$
 : BEGINNING TEST SCRIPT
 : 
@@ -12,8 +12,10 @@ PRE-SCRIPT INFO
 : makefile
 mytestresults
 p3testscript
+readme.txt
 smallsh
 smallsh.c
+todo
 : 
 : 
 : --------------------
@@ -26,56 +28,71 @@ smallsh.c
 makefile
 mytestresults
 p3testscript
+readme.txt
 smallsh
 smallsh.c
+todo
 : 
 : 
 : --------------------
 : wc in junk (15 points for returning correct numbers from wc)
-:  6  6 59
+:  8  8 75
 : 
 : 
 : --------------------
 : wc in junk out junk2; cat junk2 (10 points for returning correct numbers from wc)
-: :  6  6 59
+: :  8  8 75
 : 
 : 
 : --------------------
 : test -f badfile (10 points for returning error value of 1, note extraneous &)
-: : exit value 1
-: 
+: : exit value 1: 
 : 
 : --------------------
 : wc in badfile (10 points for returning text error)
-: cannot open file for reading
-wc: <: No such file or directory
-wc: badfile: No such file or directory
-0 0 0 total
+: Unable to open input file
+: No such file or directory
 : 
 : 
 : --------------------
 : badfile (10 points for returning text error)
-: : 
+: command "badfile" is not a valid command
+: 
 : 
 : --------------------
 : sleep 100 background (10 points for returning process ID of sleeper)
-: : 
+: background pid is 45635
+: 
 : 
 : --------------------
 : pkill -signal SIGTERM sleep (10 points for pid of killed process, 10 points for signal)
 : (Ignore message about Operation Not Permitted)
 : pkill: killing pid 1498 failed: Operation not permitted
-pkill: killing pid 3896 failed: Operation not permitted
+pkill: killing pid 5499 failed: Operation not permitted
+pkill: killing pid 5556 failed: Operation not permitted
+pkill: killing pid 11558 failed: Operation not permitted
+pkill: killing pid 16473 failed: Operation not permitted
+pkill: killing pid 17285 failed: Operation not permitted
 pkill: killing pid 18826 failed: Operation not permitted
-pkill: killing pid 33317 failed: Operation not permitted
 pkill: killing pid 34776 failed: Operation not permitted
 pkill: killing pid 37484 failed: Operation not permitted
-pkill: killing pid 40646 failed: Operation not permitted
-: 
+pkill: killing pid 41513 failed: Operation not permitted
+pkill: killing pid 41514 failed: Operation not permitted
+pkill: killing pid 42343 failed: Operation not permitted
+pkill: killing pid 42344 failed: Operation not permitted
+pkill: killing pid 43719 failed: Operation not permitted
+pkill: killing pid 43917 failed: Operation not permitted
+pkill: killing pid 44013 failed: Operation not permitted
+pkill: killing pid 44070 failed: Operation not permitted
+pkill: killing pid 45217 failed: Operation not permitted
+pkill: killing pid 45521 failed: Operation not permitted
+pkill: killing pid 45643 failed: Operation not permitted
+Background pid 45635 is done: terminated by signal 15: 
 : 
 : --------------------
 : sleep 1 background (10 pts for pid of bg ps when done, 10 for exit value)
-: : : 
+: background pid is 45648
+: Background pid 45648 is done: exit value 0: 
 : 
 : --------------------
 : pwd
@@ -92,46 +109,60 @@ pkill: killing pid 40646 failed: Operation not permitted
 : 
 : 
 : --------------------
-: mkdir testdir$$
-: mkdir: cannot create directory ‘testdir$$’: File exists
-: 
+: mkdir testdir45630
+: : 
 : 
 : --------------------
-: cd testdir$$
+: cd testdir45630
 : : 
 : 
 : --------------------
 : pwd (5 points for being in the newly created dir)
-: /nfs/stak/users/wilsoan6/testdir$$
+: /nfs/stak/users/wilsoan6/testdir45630
 : --------------------
 : Testing foreground-only mode (20 points for entry & exit text AND ~5 seconds between times)
-: kill: cannot find process "$$"
-: Thu Aug  1 14:33:59 PDT 2019
-: : Thu Aug  1 14:33:59 PDT 2019
-: kill: cannot find process "$$"
-: : 
+: Entering foreground-only mode (& is now ignored)
+: Sat Aug  3 16:38:08 PDT 2019
+Background pid 45691 is done: exit value 0: : Sat Aug  3 16:38:13 PDT 2019
+: Exiting foreground-only mode
+Background pid 45745 is done: exit value 0: : 
 : 
 : --------------------
 : sleep 100 background (10 points for returning process ID of sleeper)
-: : 
+: background pid is 45750
+: 
 : 
 : --------------------
 : pkill -signal SIGTERM sleep (10 points for pid of killed process, 10 points for signal)
 : (Ignore message about Operation Not Permitted)
 : pkill: killing pid 1498 failed: Operation not permitted
-pkill: killing pid 3896 failed: Operation not permitted
+pkill: killing pid 5499 failed: Operation not permitted
+pkill: killing pid 5556 failed: Operation not permitted
+pkill: killing pid 11558 failed: Operation not permitted
+pkill: killing pid 16473 failed: Operation not permitted
+pkill: killing pid 17285 failed: Operation not permitted
 pkill: killing pid 18826 failed: Operation not permitted
-pkill: killing pid 33317 failed: Operation not permitted
 pkill: killing pid 34776 failed: Operation not permitted
 pkill: killing pid 37484 failed: Operation not permitted
-pkill: killing pid 40646 failed: Operation not permitted
-: 
+pkill: killing pid 41513 failed: Operation not permitted
+pkill: killing pid 41514 failed: Operation not permitted
+pkill: killing pid 42343 failed: Operation not permitted
+pkill: killing pid 42344 failed: Operation not permitted
+pkill: killing pid 43719 failed: Operation not permitted
+pkill: killing pid 43917 failed: Operation not permitted
+pkill: killing pid 44013 failed: Operation not permitted
+pkill: killing pid 44070 failed: Operation not permitted
+pkill: killing pid 45217 failed: Operation not permitted
+pkill: killing pid 45521 failed: Operation not permitted
+pkill: killing pid 45768 failed: Operation not permitted
+Background pid 45750 is done: terminated by signal 15: 
 : 
 : --------------------
 : sleep 1 background (10 pts for pid of bg ps when done, 10 for exit value)
-: : : 
+: background pid is 45774
+: : 
 : 
-: --------------------
+Background pid 45774 is done: exit value 0: --------------------
 : pwd
 : /nfs/stak/users/wilsoan6/Term4/344OS/Program3
 : 
@@ -146,21 +177,20 @@ pkill: killing pid 40646 failed: Operation not permitted
 : 
 : 
 : --------------------
-: mkdir testdir$$
-: mkdir: cannot create directory ‘testdir$$’: File exists
-: 
+: mkdir testdir45579
+: : 
 : 
 : --------------------
-: cd testdir$$
+: cd testdir45579
 : : 
 : 
 : --------------------
 : pwd (5 points for being in the newly created dir)
-: /nfs/stak/users/wilsoan6/testdir$$
+: /nfs/stak/users/wilsoan6/testdir45579
 : --------------------
 : Testing foreground-only mode (20 points for entry & exit text AND ~5 seconds between times)
-: kill: cannot find process "$$"
-: Thu Aug  1 14:34:01 PDT 2019
-: : Thu Aug  1 14:34:01 PDT 2019
-: kill: cannot find process "$$"
+: Entering foreground-only mode (& is now ignored)
+: Sat Aug  3 16:38:15 PDT 2019
+Background pid 45817 is done: exit value 0: : Sat Aug  3 16:38:20 PDT 2019
+: Exiting foreground-only mode
 : 

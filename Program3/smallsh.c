@@ -17,24 +17,16 @@ bool foregroundOnlyMode = false;
 
 void printExitStatus(int * status, bool * signalFlag){
     char *exitStatusMessage;
-    int exitStatusSize;
 
     if (*signalFlag == false)
     {
         exitStatusMessage = "exit value ";
-        exitStatusSize = 11;
     }
     else
     {
         exitStatusMessage = "terminated by signal ";
-        exitStatusSize = 21;
     }
-    int statusHex = 0x30; // 0 in hex, refernece: https://stackoverflow.com/a/9597106
-    statusHex += *status; // add the last exit status number to the hex value
-    char buff[] = {1, statusHex, '\n'};
-    write(STDOUT_FILENO, exitStatusMessage, exitStatusSize);
-    fflush(stdout);
-    write(STDOUT_FILENO, buff, sizeof(buff));
+    printf("%s%d", exitStatusMessage, *status);
     fflush(stdout);
 }
 
@@ -284,8 +276,6 @@ bool executeInput(char *userInputArray[], int numArguments, int *status, bool *s
     /*** EXIT ***/
     if (strcmp(userInputArray[0], "exit") == 0)
     {
-        //kill all children here
-
         return true; //set flag to break out of loop in main
     }
     /*** CD ***/
@@ -310,20 +300,20 @@ bool executeInput(char *userInputArray[], int numArguments, int *status, bool *s
 
     /*** OTHER COMMAND ***/
     else
-    {
-        if(foregroundOnlyMode == true){ //remove trailing ampersand if any
-            if (strcmp(userInputArray[numArguments - 1], "&") == 0){
-                userInputArray[numArguments - 1] = "\0";
-                numArguments--;
-            }
-        }
-        
-        if (strcmp(userInputArray[numArguments - 1], "&") == 0)
+    {       
+        //only start in backround if not in foregroundOnly mode and '&' is last arguement
+        if (foregroundOnlyMode != true && strcmp(userInputArray[numArguments - 1], "&") == 0)
         {
             startBackgroundProcess(userInputArray, numArguments);
         }
         else
-        {
+        {   //if in foregroundOnly mode, remove trailing ampersand if present
+            if(foregroundOnlyMode == true){
+                if(strcmp(userInputArray[numArguments - 1], "&") == 0){
+                    userInputArray[numArguments - 1] = "\0";
+                    numArguments--;
+                }
+            }
             startForegroudProcess(userInputArray, numArguments, status, signalFlag);
         }
     }
@@ -395,7 +385,6 @@ void mainShellLoop()
                 strcat(newString, pidString);
                 
                 token = newString;
-                printf("%s\n", token);
             }
             userInputArray[numArguments] = token;
             numArguments++;
