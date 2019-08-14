@@ -14,6 +14,9 @@ int recieveFile(char * filename, int socketFD)
     char *buffer;
     char fileSizeString[10];
 
+    char buffer2[400];
+    memset(buffer2, '\0', 400);
+
     file = fopen(filename, "w"); //open the file to write
 
     //recieve filesize
@@ -23,8 +26,6 @@ int recieveFile(char * filename, int socketFD)
         return 1;
     }
 
-    printf("file size: %s\n", fileSizeString);
-
     //malloc filesize'd buffer
     fileSize = atoi(fileSizeString);
     buffer = malloc(sizeof(char) * fileSize);
@@ -33,7 +34,7 @@ int recieveFile(char * filename, int socketFD)
 
     //read string into buffer
     while(fileSize > 0){
-        bytesRead = recv(socketFD, buffer, sizeof(buffer), 0);
+        bytesRead = recv(socketFD, buffer, fileSize, 0);
         fileSize -= bytesRead;
     }
 

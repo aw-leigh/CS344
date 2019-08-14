@@ -41,20 +41,12 @@ int sendFile(char * filename, int socketFD)
     //send filesize before sending file
     send(socketFD, fileSizeString, strlen(fileSizeString), 0);
 
+    //server will reply with "OK" if size was received
     recv(socketFD, fileSizeString, 3, 0);
+
     if(strcmp(fileSizeString, "OK") == 0)
     {
-        //ensure we send all of any large files
-        while (fileSize > 0)
-        {
-            bytesSent = send(socketFD, buffer, strlen(buffer), 0);
-            if (bytesSent < 0)
-            {
-                fprintf(stderr, "Error in writing\n");
-                return;
-            }
-            fileSize -= bytesSent;
-        }
+        send(socketFD, buffer, strlen(buffer), 0);
     }
 
     free(buffer);
