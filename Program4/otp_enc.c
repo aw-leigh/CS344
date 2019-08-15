@@ -6,6 +6,25 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <ctype.h> //isalpha
+
+int checkValidity(char * filename){
+    FILE *file;
+    char c;
+    char *buffer;
+
+    file = fopen(filename, "r"); //open the file read-only
+
+    if (file == NULL){
+        return 1; //could not open file
+    }
+    while ((c = fgetc(file)) != EOF){
+        if(isalpha(c) == 0 && c != ' ' && c != '\n'){
+            return 1;
+        }
+    }
+    return 0;
+}
 
 long int getCharCount(char * filename)
 {
@@ -87,6 +106,10 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Error: key '%s' is too short\n", argv[2]);
         exit(1);
     }
+    if(checkValidity(argv[1]) == 1){
+        fprintf(stderr, "otp_enc error: input contains bad characters");
+        exit(1);
+    }    
 
     // Set up the server address struct
     memset((char *)&serverAddress, '\0', sizeof(serverAddress)); // Clear out the address struct
@@ -131,12 +154,10 @@ int main(int argc, char *argv[])
         fprintf(stderr, "ERROR not connected to otp_enc_d");
         exit(2);
     }
-    else //send plaintext
+    else //send plaintext if valid
     {
         fileSize = sendFile(argv[1], socketFD) - 1;
         sendFile(argv[2], socketFD);
-
-        // fprintf(stderr, "ENC filesize: %d\n", fileSize);        
 
         //recieve encrypted message & print to stdout
         message = malloc(sizeof(char) * fileSize + 1);
@@ -147,9 +168,7 @@ int main(int argc, char *argv[])
             strcat(message, buffer);
             memset(buffer, '\0', 81920);
             fileSize -= charsRead;
-            // fprintf(stderr, "fileSize: %d\n", fileSize);
         }
-        // fprintf(stderr, "ENC strlen e: %d\n", strlen(message));
         printf("%s\n", message);
         // free(message);
     }

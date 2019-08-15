@@ -38,7 +38,8 @@ int recieveFile(int socketFD, char **outputString)
 {
     int bytesRead;
     long int fileSize;
-    char fileSizeString[10];
+    char fileSizeString[20];
+    memset(fileSizeString,'\0', 20);
 
     //recieve filesize
     bytesRead = recv(socketFD, fileSizeString, sizeof(fileSizeString), 0);
@@ -51,6 +52,7 @@ int recieveFile(int socketFD, char **outputString)
     //malloc filesize'd buffer
     fileSize = atoi(fileSizeString);
     *outputString = malloc(sizeof(char) * fileSize);
+    memset(*outputString,'\0', sizeof(*outputString));
 
     send(socketFD, "OK", 3, 0);
 
@@ -156,10 +158,6 @@ int main(int argc, char *argv[])
                 fileSize = recieveFile(establishedConnectionFD, &plainText);
                 plainText[strcspn(plainText, "\n")] = '\0'; // Remove the trailing \n
 
-                // printf("ENCd filesize: %d\n", fileSize);
-                // printf("ENCd strlen p: %d\n", strlen(plainText));
-                // printf("%s\n", plainText);
-
                 //recieve key
                 recieveFile(establishedConnectionFD, &keyText);
 
@@ -175,8 +173,6 @@ int main(int argc, char *argv[])
                 }
 
                 //send encrypted message
-                // printf("ENCd strlen e: %d\n", strlen(encryptedMessage));
-                // printf("%s\n", encryptedMessage);
                 send(establishedConnectionFD, encryptedMessage, strlen(encryptedMessage), 0);
 
                 free(encryptedMessage);

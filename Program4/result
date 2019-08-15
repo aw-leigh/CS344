@@ -23,7 +23,7 @@ key20 exists!
 #-----------------------------------------
 #otp_enc plaintext1 key70000 $encport
 #20 POINTS: Should return encrypted version of plaintext1
-LRYFM FJSFVGINHZYOBVLPVTWHNDRVRDE NY
+JTKGBVXWZCARUNFQEAQEVGKTZKCAGUHQRCBO
 
 #-----------------------------------------
 #otp_enc plaintext1 key70000 $encport > ciphertext1
@@ -39,7 +39,7 @@ ciphertext1 exists!
 
 #-----------------------------------------
 #5 POINTS: ciphertext1 should look encrypted
-QTODJITKDVSGPXSDJGRURABHBYYSSCTYPTQE
+JTKGBVXWZCARUNFQEAQEVGKTZKCAGUHQRCBO
 
 #-----------------------------------------
 #otp_dec ciphertext1 key70000 $encport
@@ -67,22 +67,22 @@ plaintext1_a exists!
 #20 POINTS: concurrent test of encryption - look for 4 properly-sized ciphertext# files, or 5 where the 5th is 0 bytes
 #5 POINTS: Should be only one error about plaintext5 being bad
 Ten second sleep, your program must complete in this time
-total 356
-drwxrwx---. 1 wilsoan6 upg9052  1148 Aug 15 11:22 ./
+total 328
+drwxrwx---. 1 wilsoan6 upg9052  1148 Aug 15 11:39 ./
 drwxrwx---. 1 wilsoan6 upg9052   200 Aug 13 12:10 ../
 -rw-rw----. 1 wilsoan6 upg9052 70001 Aug 15 09:09 bigkey
--rw-rw----. 1 wilsoan6 upg9052   317 Aug 15 11:12 cipher
--rw-rw----. 1 wilsoan6 upg9052    37 Aug 15 11:22 ciphertext1
--rw-rw----. 1 wilsoan6 upg9052   317 Aug 15 11:22 ciphertext2
--rw-rw----. 1 wilsoan6 upg9052    17 Aug 15 11:22 ciphertext3
--rw-rw----. 1 wilsoan6 upg9052 69333 Aug 15 11:22 ciphertext4
--rw-rw----. 1 wilsoan6 upg9052    42 Aug 15 11:22 ciphertext5
+-rw-rw----. 1 wilsoan6 upg9052   317 Aug 15 11:37 cipher
+-rw-rw----. 1 wilsoan6 upg9052    37 Aug 15 11:39 ciphertext1
+-rw-rw----. 1 wilsoan6 upg9052   317 Aug 15 11:39 ciphertext2
+-rw-rw----. 1 wilsoan6 upg9052    17 Aug 15 11:39 ciphertext3
+-rw-rw----. 1 wilsoan6 upg9052 69333 Aug 15 11:39 ciphertext4
+-rw-rw----. 1 wilsoan6 upg9052     0 Aug 15 11:39 ciphertext5
 -rw-rw----. 1 wilsoan6 upg9052  2607 Aug 13 16:40 client.c
 -rwxrwx---. 1 wilsoan6 upg9052    20 Aug 14 20:01 compileall
 -rw-rw----. 1 wilsoan6 upg9052  3724 Aug 13 17:42 ftclient.py
 -rw-rw----. 1 wilsoan6 upg9052  9603 Aug 13 17:41 ftserver.c
--rw-rw----. 1 wilsoan6 upg9052    21 Aug 15 11:22 key20
--rw-rw----. 1 wilsoan6 upg9052 70001 Aug 15 11:22 key70000
+-rw-rw----. 1 wilsoan6 upg9052    21 Aug 15 11:39 key20
+-rw-rw----. 1 wilsoan6 upg9052 70001 Aug 15 11:39 key70000
 -rwxrwx---. 1 wilsoan6 upg9052  8776 Aug 15 08:42 keygen
 -rw-rw----. 1 wilsoan6 upg9052   707 Aug 13 12:34 keygen.c
 -rw-rw----. 1 wilsoan6 upg9052   464 Aug 14 20:34 makefile
@@ -91,8 +91,8 @@ drwxrwx---. 1 wilsoan6 upg9052   200 Aug 13 12:10 ../
 -rw-rw----. 1 wilsoan6 upg9052  4442 Aug 15 11:22 otp_dec.c
 -rwxrwx---. 1 wilsoan6 upg9052 13592 Aug 15 11:20 otp_dec_d
 -rw-rw----. 1 wilsoan6 upg9052  5936 Aug 15 11:20 otp_dec_d.c
--rwxrwx---. 1 wilsoan6 upg9052 13896 Aug 15 10:55 otp_enc
--rw-rw----. 1 wilsoan6 upg9052  4850 Aug 15 10:54 otp_enc.c
+-rwxrwx---. 1 wilsoan6 upg9052 14040 Aug 15 11:37 otp_enc
+-rw-rw----. 1 wilsoan6 upg9052  5196 Aug 15 11:37 otp_enc.c
 -rwxrwx---. 1 wilsoan6 upg9052 13584 Aug 15 11:09 otp_enc_d
 -rw-rw----. 1 wilsoan6 upg9052  6144 Aug 15 11:09 otp_enc_d.c
 -rwxrwx---. 1 wilsoan6 upg9052  5085 Aug 15 10:58 p4gradingscript
@@ -101,32 +101,28 @@ drwxrwx---. 1 wilsoan6 upg9052   200 Aug 13 12:10 ../
 -rw-rw----. 1 wilsoan6 upg9052    17 Aug 13 17:37 plaintext3
 -rw-rw----. 1 wilsoan6 upg9052 69333 Aug 13 17:37 plaintext4
 -rw-rw----. 1 wilsoan6 upg9052    42 Aug 13 17:37 plaintext5
--rw-rw----. 1 wilsoan6 upg9052  2335 Aug 15 11:22 result
--rw-rw----. 1 wilsoan6 upg9052  2515 Aug 13 16:40 server.c
--rw-rw----. 1 wilsoan6 upg9052 14484 Aug 13 16:49 smallsh.c
--rw-rw----. 1 wilsoan6 upg9052    51 Aug 14 20:35 testkey
--rw-rw----. 1 wilsoan6 upg9052    13 Aug 14 19:17 testtext
+-rw-rw----. 1 wilsoan6 upg9052  2335 Aug 15 11:39 result
 drwxrwx---. 1 wilsoan6 upg9052   144 Aug 14 18:03 .vscode/
 
 #-----------------------------------------
 #15 POINTS: concurrent test of decryption - look for 4 plaintext#_a files that match the plaintext# files
 #Ten second sleep, your program must complete in this time
-total 360
-drwxrwx---. 1 wilsoan6 upg9052  1148 Aug 15 11:22 ./
+total 332
+drwxrwx---. 1 wilsoan6 upg9052  1148 Aug 15 11:39 ./
 drwxrwx---. 1 wilsoan6 upg9052   200 Aug 13 12:10 ../
 -rw-rw----. 1 wilsoan6 upg9052 70001 Aug 15 09:09 bigkey
--rw-rw----. 1 wilsoan6 upg9052   317 Aug 15 11:12 cipher
--rw-rw----. 1 wilsoan6 upg9052    37 Aug 15 11:22 ciphertext1
--rw-rw----. 1 wilsoan6 upg9052   317 Aug 15 11:22 ciphertext2
--rw-rw----. 1 wilsoan6 upg9052    17 Aug 15 11:22 ciphertext3
--rw-rw----. 1 wilsoan6 upg9052 69333 Aug 15 11:22 ciphertext4
--rw-rw----. 1 wilsoan6 upg9052    42 Aug 15 11:22 ciphertext5
+-rw-rw----. 1 wilsoan6 upg9052   317 Aug 15 11:37 cipher
+-rw-rw----. 1 wilsoan6 upg9052    37 Aug 15 11:39 ciphertext1
+-rw-rw----. 1 wilsoan6 upg9052   317 Aug 15 11:39 ciphertext2
+-rw-rw----. 1 wilsoan6 upg9052    17 Aug 15 11:39 ciphertext3
+-rw-rw----. 1 wilsoan6 upg9052 69333 Aug 15 11:39 ciphertext4
+-rw-rw----. 1 wilsoan6 upg9052     0 Aug 15 11:39 ciphertext5
 -rw-rw----. 1 wilsoan6 upg9052  2607 Aug 13 16:40 client.c
 -rwxrwx---. 1 wilsoan6 upg9052    20 Aug 14 20:01 compileall
 -rw-rw----. 1 wilsoan6 upg9052  3724 Aug 13 17:42 ftclient.py
 -rw-rw----. 1 wilsoan6 upg9052  9603 Aug 13 17:41 ftserver.c
--rw-rw----. 1 wilsoan6 upg9052    21 Aug 15 11:22 key20
--rw-rw----. 1 wilsoan6 upg9052 70001 Aug 15 11:22 key70000
+-rw-rw----. 1 wilsoan6 upg9052    21 Aug 15 11:39 key20
+-rw-rw----. 1 wilsoan6 upg9052 70001 Aug 15 11:39 key70000
 -rwxrwx---. 1 wilsoan6 upg9052  8776 Aug 15 08:42 keygen
 -rw-rw----. 1 wilsoan6 upg9052   707 Aug 13 12:34 keygen.c
 -rw-rw----. 1 wilsoan6 upg9052   464 Aug 14 20:34 makefile
@@ -135,25 +131,21 @@ drwxrwx---. 1 wilsoan6 upg9052   200 Aug 13 12:10 ../
 -rw-rw----. 1 wilsoan6 upg9052  4442 Aug 15 11:22 otp_dec.c
 -rwxrwx---. 1 wilsoan6 upg9052 13592 Aug 15 11:20 otp_dec_d
 -rw-rw----. 1 wilsoan6 upg9052  5936 Aug 15 11:20 otp_dec_d.c
--rwxrwx---. 1 wilsoan6 upg9052 13896 Aug 15 10:55 otp_enc
--rw-rw----. 1 wilsoan6 upg9052  4850 Aug 15 10:54 otp_enc.c
+-rwxrwx---. 1 wilsoan6 upg9052 14040 Aug 15 11:37 otp_enc
+-rw-rw----. 1 wilsoan6 upg9052  5196 Aug 15 11:37 otp_enc.c
 -rwxrwx---. 1 wilsoan6 upg9052 13584 Aug 15 11:09 otp_enc_d
 -rw-rw----. 1 wilsoan6 upg9052  6144 Aug 15 11:09 otp_enc_d.c
 -rwxrwx---. 1 wilsoan6 upg9052  5085 Aug 15 10:58 p4gradingscript
 -rw-rw----. 1 wilsoan6 upg9052    37 Aug 13 17:37 plaintext1
--rw-rw----. 1 wilsoan6 upg9052    37 Aug 15 11:22 plaintext1_a
+-rw-rw----. 1 wilsoan6 upg9052    37 Aug 15 11:39 plaintext1_a
 -rw-rw----. 1 wilsoan6 upg9052   317 Aug 13 17:37 plaintext2
--rw-rw----. 1 wilsoan6 upg9052   317 Aug 15 11:22 plaintext2_a
+-rw-rw----. 1 wilsoan6 upg9052   317 Aug 15 11:39 plaintext2_a
 -rw-rw----. 1 wilsoan6 upg9052    17 Aug 13 17:37 plaintext3
--rw-rw----. 1 wilsoan6 upg9052    17 Aug 15 11:22 plaintext3_a
+-rw-rw----. 1 wilsoan6 upg9052    17 Aug 15 11:39 plaintext3_a
 -rw-rw----. 1 wilsoan6 upg9052 69333 Aug 13 17:37 plaintext4
--rw-rw----. 1 wilsoan6 upg9052 69333 Aug 15 11:22 plaintext4_a
+-rw-rw----. 1 wilsoan6 upg9052     0 Aug 15 11:39 plaintext4_a
 -rw-rw----. 1 wilsoan6 upg9052    42 Aug 13 17:37 plaintext5
--rw-rw----. 1 wilsoan6 upg9052  4882 Aug 15 11:22 result
--rw-rw----. 1 wilsoan6 upg9052  2515 Aug 13 16:40 server.c
--rw-rw----. 1 wilsoan6 upg9052 14484 Aug 13 16:49 smallsh.c
--rw-rw----. 1 wilsoan6 upg9052    51 Aug 14 20:35 testkey
--rw-rw----. 1 wilsoan6 upg9052    13 Aug 14 19:17 testtext
+-rw-rw----. 1 wilsoan6 upg9052  4646 Aug 15 11:39 result
 drwxrwx---. 1 wilsoan6 upg9052   144 Aug 14 18:03 .vscode/
 
 #-----------------------------------------

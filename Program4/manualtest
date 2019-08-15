@@ -3,6 +3,6 @@ make reset
 sleep 2
 otp_enc_d 73333 &
 otp_dec_d 74444 &
-otp_enc plaintext2 bigkey 73333 > cipher
-sleep 2
+otp_enc plaintext1 bigkey 73333 > cipher
+sleep 1
 otp_dec cipher bigkey 74444
