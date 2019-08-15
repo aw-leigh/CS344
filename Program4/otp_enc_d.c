@@ -62,7 +62,8 @@ int recieveFile(int socketFD, char ** outputString)
 
 int main(int argc, char *argv[])
 {
-    int listenSocketFD, establishedConnectionFD, portNumber, charsRead, fileSize, i;
+    int listenSocketFD, establishedConnectionFD, portNumber, charsRead, i;
+    long int fileSize;
     socklen_t sizeOfClientInfo;
     struct sockaddr_in serverAddress, clientAddress;
     pid_t pid;
@@ -151,9 +152,9 @@ int main(int argc, char *argv[])
                 fileSize = recieveFile(establishedConnectionFD, &plainText);
                 plainText[strcspn(plainText, "\n")] = '\0'; // Remove the trailing \n
 
-                printf("\n%d\n", fileSize);
-                printf("%d\n", strlen(plainText));
-                printf("%s\n", plainText);
+                // printf("\n%d\n", fileSize);
+                // printf("%d\n", strlen(plainText));
+                // printf("%s\n", plainText);
 
                 //recieve key
                 recieveFile(establishedConnectionFD, &keyText);
@@ -162,14 +163,14 @@ int main(int argc, char *argv[])
                 encryptedMessage = malloc(fileSize);
                 memset(encryptedMessage, '\0', fileSize);
 
-                for(i = 0; i < fileSize; i++){
+                for(i = 0; i < strlen(plainText); i++){
                     textChar = plainText[i];
                     keyChar = keyText[i];
                     encryptedMessage[i] = addKeyToPlainText(keyChar, textChar);
                 }                
 
                 //send encrypted message
-                printf("%s\n", encryptedMessage);
+                // printf("%s\n", encryptedMessage);
                 send(establishedConnectionFD, encryptedMessage, fileSize, 0);                
 
                 free(encryptedMessage);

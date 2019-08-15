@@ -36,27 +36,6 @@ char subKeyFromPlainText(char keyChar, char textChar)
     return (char)result;
 }
 
-void encryptMessage(char ** encryptedMessage, char ** plainText, char ** keyText, int fileSize)
-{
-    int i;
-    char textChar;
-    char keyChar;
-
-    for(i = 0; i < 10; i++){
-        printf("%d ", i);
-    }
-
-    //read messages char by char
-    for(i = 0; i < fileSize; i++){
-        textChar = *plainText[i];
-        keyChar = *keyText[i];
-
-        //printf("S:%d I:%d   T:%c K:%c\n",fileSize, i, textChar, keyChar);
-
-        *encryptedMessage[i] = subKeyFromPlainText(keyChar, textChar);
-    }
-}
-
 int recieveFile(int socketFD, char ** outputString)
 {
     int bytesRead;
@@ -88,7 +67,8 @@ int recieveFile(int socketFD, char ** outputString)
 
 int main(int argc, char *argv[])
 {
-    int listenSocketFD, establishedConnectionFD, portNumber, charsRead, fileSize, i;
+    int listenSocketFD, establishedConnectionFD, portNumber, charsRead, i;
+    long int fileSize;
     socklen_t sizeOfClientInfo;
     struct sockaddr_in serverAddress, clientAddress;
     pid_t pid;
@@ -175,24 +155,24 @@ int main(int argc, char *argv[])
 
                 //recieve ciphertext and grab size of message to encrypt
                 fileSize = recieveFile(establishedConnectionFD, &cipherText);
+                cipherText[strcspn(cipherText, "\n")] = '\0'; // Remove the trailing \n           
 
                 //recieve key
                 recieveFile(establishedConnectionFD, &keyText);
 
                 //decrypt message
-                decryptedMessage = malloc(fileSize + 1);
-                memset(decryptedMessage, '\0', fileSize + 1);
+                decryptedMessage = malloc(fileSize);
+                memset(decryptedMessage, '\0', fileSize);
 
-                for(i = 0; i < fileSize; i++){
+                for(i = 0; i < strlen(cipherText); i++){
                     textChar = cipherText[i];
                     keyChar = keyText[i];
                     decryptedMessage[i] = subKeyFromPlainText(keyChar, textChar);
                 }                
 
                 //send decrypted message
-                printf("\n%s\n", decryptedMessage);
-                printf("\n%d\n", fileSize+1);
-                send(establishedConnectionFD, decryptedMessage, fileSize+1, 0);                
+                // printf("\n%s\n", decryptedMessage);
+                send(establishedConnectionFD, decryptedMessage, fileSize, 0);                
 
                 free(decryptedMessage);
                 decryptedMessage = NULL;
