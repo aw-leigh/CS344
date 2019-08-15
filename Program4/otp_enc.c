@@ -7,6 +7,23 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
+int getCharCount(char * filename)
+{
+    FILE *file;
+    int fileSize;
+
+    file = fopen(filename, "r"); //open the file read-only
+
+    //find file size, reference: https://stackoverflow.com/a/238609
+    fseek(file, 0, SEEK_END); // seek to end of file
+    fileSize = ftell(file);   // get current file pointer
+    rewind(file);
+
+    fclose(file);
+
+    return fileSize;
+}
+
 int sendFile(char * filename, int socketFD)
 {
     int bytesRead, bytesSent;
@@ -65,6 +82,13 @@ int main(int argc, char *argv[])
     if (argc != 4)
     {
         fprintf(stderr, "Usage: otp_end <plain text file> <key text file> <port>\n");
+        exit(1);
+    }
+
+    printf("Sizes: argv[1]: %d argv[2]: %d\n",getCharCount(argv[1]), getCharCount(argv[2]));
+
+    if(getCharCount(argv[1]) > getCharCount(argv[2])){
+        fprintf(stderr, "Error: key '%s' is too short\n", argv[2]);
         exit(1);
     }
 

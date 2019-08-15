@@ -6,18 +6,53 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-int recieveFile(char * filename, int socketFD)
+char addKeyToPlainText(char keyChar, char textChar)
+{
+    int result;
+
+    keyChar -= 65; //this makes A = 0, B = 1, ...
+    textChar -= 65;
+
+    if(keyChar < 0){ // ' ' is 27
+        keyChar = 27;
+    }
+    if(textChar < 0){
+        textChar = 27;
+    }
+
+    result = ((int)keyChar + (int)textChar) % 27 + 65;
+    if(result == 91){
+        result = 32; //ASCII for ' '
+    }
+
+    return (char)result;
+}
+
+void encryptMessage(char ** encryptedMessage, char ** plainText, char ** keyText, int fileSize)
+{
+    int iterator;
+    char textChar;
+    char keyChar;
+
+    iterator = 0;
+
+    //read messages char by char
+    while(iterator < fileSize){
+        textChar = *plainText[iterator];
+        keyChar = *keyText[iterator];
+
+        printf("S: %d T: %c  K: %c\n",fileSize, textChar, keyChar);
+
+        //*encryptedMessage[iterator] = addKeyToPlainText(keyChar, textChar);
+        iterator++;
+    }
+}
+
+int recieveFile(int socketFD, char ** outputString)
 {
     int bytesRead;
-    FILE *file;
     long int fileSize;
-    char *buffer;
     char fileSizeString[10];
-
-    char buffer2[400];
-    memset(buffer2, '\0', 400);
-
-    file = fopen(filename, "w"); //open the file to write
 
     //recieve filesize
     bytesRead = recv(socketFD, fileSizeString, sizeof(fileSizeString), 0);
@@ -28,38 +63,32 @@ int recieveFile(char * filename, int socketFD)
 
     //malloc filesize'd buffer
     fileSize = atoi(fileSizeString);
-    buffer = malloc(sizeof(char) * fileSize);
+    *outputString = malloc(sizeof(char) * fileSize);
 
     send(socketFD, "OK", 3, 0);
 
     //read string into buffer
     while(fileSize > 0){
-        bytesRead = recv(socketFD, buffer, fileSize, 0);
+        bytesRead = recv(socketFD, *outputString, fileSize, 0);
         fileSize -= bytesRead;
     }
 
-    printf("Received string:\n%s\n", buffer);
-
-    //write buffer to file
-    int results = fputs(buffer, file);
-    if(results == EOF){
-        fprintf(stderr, "Error writing file");
-        return 1;
-    }
-
-    free(buffer);
-    return 0;
+    fileSize = atoi(fileSizeString);
+    return fileSize;
 }
 
 int main(int argc, char *argv[])
 {
-    int listenSocketFD, establishedConnectionFD, portNumber, charsRead;
+    int listenSocketFD, establishedConnectionFD, portNumber, charsRead, fileSize;
     socklen_t sizeOfClientInfo;
     struct sockaddr_in serverAddress, clientAddress;
     pid_t pid;
     int childExitMethod = -1337;
     char buffer[256];
     memset(buffer, '\0', 256);
+    char * plainText;
+    char * keyText;
+    char * encryptedMessage;
 
     //ensure there are three arguments, and that the third is "&"
     //so nonnumeric port input causes undefined behaviour
@@ -136,14 +165,29 @@ int main(int argc, char *argv[])
                 //otp_enc_d child will then write back the ciphertext to the
                 //otp_enc process that it is connected to via the same communication socket
 
-                //recieve plaintext
-                recieveFile("plaintext", establishedConnectionFD);
-                //acknowledge receipt of plaintext
-                recieveFile("key", establishedConnectionFD);
+                //recieve plaintext and grab size of message to encrypt
+                fileSize = recieveFile(establishedConnectionFD, &plainText);
+                printf("Received text:\n%s\n", plainText);
 
                 //recieve key
+                recieveFile(establishedConnectionFD, &keyText);
+                printf("Received key :\n%s\n", keyText);                
+
+                //encrypt message
+                encryptedMessage = malloc(fileSize + 1);
+                memset(encryptedMessage, '\0', fileSize + 1);
+
+                printf("encrypting now\n");
+
+                encryptMessage(&encryptedMessage, &plainText, &keyText, fileSize);
 
                 //send encrypted message
+                printf("Message after: %s\n", encryptedMessage);
+
+                free(encryptedMessage);
+                free(plainText);
+                free(keyText);
+                
                 break;
         }
         //wait until child process is done, then close the connection
