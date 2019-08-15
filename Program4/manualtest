@@ -1,0 +1,8 @@
+#!/bin/bash
+make reset
+sleep 2
+otp_enc_d 45656 &
+otp_dec_d 45657 &
+otp_enc plaintext1 testkey 45656 > cipher
+sleep 2
+otp_dec cipher testkey 45657

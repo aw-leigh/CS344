@@ -9,7 +9,7 @@
 #include <sys/wait.h>
 #include <netinet/in.h>
 
-char addKeyToPlainText(char keyChar, char textChar)
+char subKeyFromPlainText(char keyChar, char textChar)
 {
     int result;
 
@@ -23,12 +23,38 @@ char addKeyToPlainText(char keyChar, char textChar)
         textChar = 26;
     }
 
-    result = ((int)keyChar + (int)textChar) % 27 + 65;
+    result = ((int)textChar - (int)keyChar);
+    while(result < 0){
+        result += 27;
+    }
+    result += 65;
+    
     if(result == 91){
         result = 32; //ASCII for ' '
     }
 
     return (char)result;
+}
+
+void encryptMessage(char ** encryptedMessage, char ** plainText, char ** keyText, int fileSize)
+{
+    int i;
+    char textChar;
+    char keyChar;
+
+    for(i = 0; i < 10; i++){
+        printf("%d ", i);
+    }
+
+    //read messages char by char
+    for(i = 0; i < fileSize; i++){
+        textChar = *plainText[i];
+        keyChar = *keyText[i];
+
+        //printf("S:%d I:%d   T:%c K:%c\n",fileSize, i, textChar, keyChar);
+
+        *encryptedMessage[i] = subKeyFromPlainText(keyChar, textChar);
+    }
 }
 
 int recieveFile(int socketFD, char ** outputString)
@@ -69,9 +95,9 @@ int main(int argc, char *argv[])
     int childExitMethod = -1337;
     char buffer[256];
     memset(buffer, '\0', 256);
-    char * plainText;
+    char * cipherText;
     char * keyText;
-    char * encryptedMessage;
+    char * decryptedMessage;
     char textChar;
     char keyChar;
 
@@ -79,7 +105,7 @@ int main(int argc, char *argv[])
     //so nonnumeric port input causes undefined behaviour
     if (argc < 2)
     {
-        fprintf(stderr, "Usage: otp_enc_d <port> &\n");
+        fprintf(stderr, "Usage: otp_dec_d <port> &\n");
         exit(1);
     }
 
@@ -137,45 +163,41 @@ int main(int argc, char *argv[])
                     fprintf(stderr, "ERROR reading from socket");
                     break;
                 }
-                if (strcmp(buffer, "I am otp_enc") != 0)
+                if (strcmp(buffer, "I am otp_dec") != 0)
                 {
-                    fprintf(stderr, "ERROR not connected to otp_enc");
+                    fprintf(stderr, "ERROR not connected to otp_dec");
                     break;
                 }
                 else
                 {
-                    charsRead = send(establishedConnectionFD, "I am otp_enc_d", 15, 0); // Send success back
+                    charsRead = send(establishedConnectionFD, "I am otp_dec_d", 15, 0); // Send success back
                 }
 
-                //recieve plaintext and grab size of message to encrypt
-                fileSize = recieveFile(establishedConnectionFD, &plainText);
-                plainText[strcspn(plainText, "\n")] = '\0'; // Remove the trailing \n
-
-                printf("\n%d\n", fileSize);
-                printf("%d\n", strlen(plainText));
-                printf("%s\n", plainText);
+                //recieve ciphertext and grab size of message to encrypt
+                fileSize = recieveFile(establishedConnectionFD, &cipherText);
 
                 //recieve key
                 recieveFile(establishedConnectionFD, &keyText);
 
-                //encrypt message
-                encryptedMessage = malloc(fileSize);
-                memset(encryptedMessage, '\0', fileSize);
+                //decrypt message
+                decryptedMessage = malloc(fileSize + 1);
+                memset(decryptedMessage, '\0', fileSize + 1);
 
                 for(i = 0; i < fileSize; i++){
-                    textChar = plainText[i];
+                    textChar = cipherText[i];
                     keyChar = keyText[i];
-                    encryptedMessage[i] = addKeyToPlainText(keyChar, textChar);
+                    decryptedMessage[i] = subKeyFromPlainText(keyChar, textChar);
                 }                
 
-                //send encrypted message
-                printf("%s\n", encryptedMessage);
-                send(establishedConnectionFD, encryptedMessage, fileSize, 0);                
+                //send decrypted message
+                printf("\n%s\n", decryptedMessage);
+                printf("\n%d\n", fileSize+1);
+                send(establishedConnectionFD, decryptedMessage, fileSize+1, 0);                
 
-                free(encryptedMessage);
-                encryptedMessage = NULL;
-                free(plainText);
-                plainText = NULL;
+                free(decryptedMessage);
+                decryptedMessage = NULL;
+                free(cipherText);
+                cipherText = NULL;
                 free(keyText);
                 keyText = NULL;
                 

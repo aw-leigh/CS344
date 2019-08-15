@@ -40,12 +40,12 @@ int sendFile(char * filename, int socketFD)
     rewind(file);             // seek back to beginning of file
 
     //copy fileSize to string
-    fileSizeString = malloc(sizeof(fileSize));
-    memset(fileSizeString, '\0', strlen(fileSizeString)+1);
+    fileSizeString = malloc(sizeof(fileSize) + 1);
+    memset(fileSizeString, '\0', strlen(fileSizeString));
     sprintf(fileSizeString, "%d", fileSize);
 
     //create buffer to hold file
-    buffer = malloc(sizeof(char) * (fileSize));
+    buffer = malloc(sizeof(char) * (fileSize + 1));
 
     //read file into buffer and close the file
     bytesRead = fread(buffer, sizeof(char), fileSize, file);
@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
 
     if (argc != 4)
     {
-        fprintf(stderr, "Usage: otp_enc <plain text file> <key text file> <port>\n");
+        fprintf(stderr, "Usage: otp_dec <ciphertext file> <key text file> <port>\n");
         exit(1);
     }
 
@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
     }
 
     // send initial message to server
-    charsWritten = send(socketFD, "I am otp_enc", 13, 0);
+    charsWritten = send(socketFD, "I am otp_dec", 13, 0);
     if (charsWritten < 0)
     {
         fprintf(stderr, "CLIENT: ERROR writing to socket");
@@ -126,17 +126,17 @@ int main(int argc, char *argv[])
 
     // get response from server
     charsRead = recv(socketFD, buffer, 255, 0);
-    if (strcmp(buffer, "I am otp_enc_d") != 0)
+    if (strcmp(buffer, "I am otp_dec_d") != 0)
     {
-        fprintf(stderr, "ERROR not connected to otp_enc_d");
+        fprintf(stderr, "ERROR not connected to otp_dec_d");
         exit(2);
     }
-    else //send plaintext
+    else //send ciphertext
     {
         fileSize = sendFile(argv[1], socketFD);
         sendFile(argv[2], socketFD);
 
-        //recieve encrypted message & print to stdout
+        //recieve decrypted message & print to stdout
         message = malloc(sizeof(char) * fileSize);
         memset(message, '\0', sizeof(message));
 
