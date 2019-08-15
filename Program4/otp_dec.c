@@ -7,7 +7,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-long int getCharCount(char * filename)
+long int getCharCount(char *filename)
 {
     FILE *file;
     long int fileSize;
@@ -24,7 +24,7 @@ long int getCharCount(char * filename)
     return fileSize;
 }
 
-long int sendFile(char * filename, int socketFD)
+long int sendFile(char *filename, int socketFD)
 {
     int bytesRead, bytesSent;
     FILE *file;
@@ -58,7 +58,7 @@ long int sendFile(char * filename, int socketFD)
     //server will reply with "OK" if size was received
     recv(socketFD, fileSizeString, 3, 0);
 
-    if(strcmp(fileSizeString, "OK") == 0)
+    if (strcmp(fileSizeString, "OK") == 0)
     {
         send(socketFD, buffer, strlen(buffer), 0);
     }
@@ -73,9 +73,9 @@ int main(int argc, char *argv[])
     long int socketFD, portNumber, charsWritten, charsRead, fileSize;
     struct sockaddr_in serverAddress;
     struct hostent *serverHostInfo;
-    char buffer[8192];
-    memset(buffer, '\0', 8192);
-    char * message;
+    char buffer[81920];
+    memset(buffer, '\0', 81920);
+    char *message;
 
     if (argc != 4)
     {
@@ -83,7 +83,8 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    if(getCharCount(argv[1]) > getCharCount(argv[2])){
+    if (getCharCount(argv[1]) > getCharCount(argv[2]))
+    {
         fprintf(stderr, "Error: key '%s' is too short\n", argv[2]);
         exit(1);
     }
@@ -125,29 +126,23 @@ int main(int argc, char *argv[])
     }
 
     // get response from server
-    charsRead = recv(socketFD, buffer, 255, 0);
-    if (strcmp(buffer, "I am otp_dec_d") != 0)
+    charsRead = recv(socketFD, buffer, 81920, 0);
+
+    fileSize = sendFile(argv[1], socketFD) - 1;
+    sendFile(argv[2], socketFD);
+
+    //recieve decrypted message & print to stdout
+    message = malloc(sizeof(char) * fileSize);
+    memset(message, '\0', sizeof(message));
+
+    while (fileSize > 0)
     {
-        fprintf(stderr, "ERROR not connected to otp_dec_d");
-        exit(2);
+        charsRead = recv(socketFD, buffer, sizeof(buffer), 0);
+        strcat(message, buffer);
+        memset(buffer, '\0', 81920);
+        fileSize -= charsRead;
     }
-    else //send ciphertext
-    {
-        fileSize = sendFile(argv[1], socketFD);
-        sendFile(argv[2], socketFD);
 
-        //recieve decrypted message & print to stdout
-        message = malloc(sizeof(char) * fileSize);
-        memset(message, '\0', sizeof(message));
-
-        while(fileSize > 0){
-            charsRead = recv(socketFD, buffer, sizeof(buffer), 0);
-            strcat(message, buffer);
-            memset(buffer, '\0', 8192);
-            fileSize -= charsRead;
-        }
-
-        //printf("%s\n", message);
-        //free(message);
-    }
+    printf("%s\n", message);
+    //free(message);
 }

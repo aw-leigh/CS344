@@ -73,8 +73,8 @@ int main(int argc, char *argv[])
     long int socketFD, portNumber, charsWritten, charsRead, fileSize;
     struct sockaddr_in serverAddress;
     struct hostent *serverHostInfo;
-    char buffer[8192];
-    memset(buffer, '\0', 8192);
+    char buffer[81920];
+    memset(buffer, '\0', 81920);
     char * message;
 
     if (argc != 4)
@@ -133,22 +133,23 @@ int main(int argc, char *argv[])
     }
     else //send plaintext
     {
-        fileSize = sendFile(argv[1], socketFD);
+        fileSize = sendFile(argv[1], socketFD) - 1;
         sendFile(argv[2], socketFD);
 
-        fprintf(stderr, "ENC filesize: %d\n", fileSize);        
+        // fprintf(stderr, "ENC filesize: %d\n", fileSize);        
 
         //recieve encrypted message & print to stdout
-        message = malloc(sizeof(char) * fileSize+1);
+        message = malloc(sizeof(char) * fileSize + 1);
         memset(message, '\0', sizeof(message));
 
         while(fileSize > 0){
             charsRead = recv(socketFD, buffer, sizeof(buffer), 0);
             strcat(message, buffer);
-            memset(buffer, '\0', 8192);
+            memset(buffer, '\0', 81920);
             fileSize -= charsRead;
+            // fprintf(stderr, "fileSize: %d\n", fileSize);
         }
-        fprintf(stderr, "ENC strlen e: %d\n", strlen(message));
+        // fprintf(stderr, "ENC strlen e: %d\n", strlen(message));
         printf("%s\n", message);
         // free(message);
     }
