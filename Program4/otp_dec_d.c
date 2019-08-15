@@ -155,7 +155,10 @@ int main(int argc, char *argv[])
 
                 //recieve ciphertext and grab size of message to encrypt
                 fileSize = recieveFile(establishedConnectionFD, &cipherText);
-                cipherText[strcspn(cipherText, "\n")] = '\0'; // Remove the trailing \n           
+                cipherText[strcspn(cipherText, "\n")] = '\0'; // Remove the trailing \n   
+
+                printf("DECd filesize: %d\n", fileSize);
+                printf("DECd strlen p: %d\n", strlen(cipherText));                        
 
                 //recieve key
                 recieveFile(establishedConnectionFD, &keyText);

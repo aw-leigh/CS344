@@ -7,10 +7,10 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-int getCharCount(char * filename)
+long int getCharCount(char * filename)
 {
     FILE *file;
-    int fileSize;
+    long int fileSize;
 
     file = fopen(filename, "r"); //open the file read-only
 
@@ -24,7 +24,7 @@ int getCharCount(char * filename)
     return fileSize;
 }
 
-int sendFile(char * filename, int socketFD)
+long int sendFile(char * filename, int socketFD)
 {
     int bytesRead, bytesSent;
     FILE *file;
@@ -136,17 +136,20 @@ int main(int argc, char *argv[])
         fileSize = sendFile(argv[1], socketFD);
         sendFile(argv[2], socketFD);
 
+        fprintf(stderr, "ENC filesize: %d\n", fileSize);        
+
         //recieve encrypted message & print to stdout
-        message = malloc(sizeof(char) * fileSize);
+        message = malloc(sizeof(char) * fileSize+1);
         memset(message, '\0', sizeof(message));
 
         while(fileSize > 0){
             charsRead = recv(socketFD, buffer, sizeof(buffer), 0);
             strcat(message, buffer);
+            memset(buffer, '\0', 8192);
             fileSize -= charsRead;
         }
-
+        fprintf(stderr, "ENC strlen e: %d\n", strlen(message));
         printf("%s\n", message);
-        free(message);
+        // free(message);
     }
 }

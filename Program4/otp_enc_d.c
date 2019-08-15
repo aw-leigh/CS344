@@ -152,8 +152,8 @@ int main(int argc, char *argv[])
                 fileSize = recieveFile(establishedConnectionFD, &plainText);
                 plainText[strcspn(plainText, "\n")] = '\0'; // Remove the trailing \n
 
-                // printf("\n%d\n", fileSize);
-                // printf("%d\n", strlen(plainText));
+                printf("ENCd filesize: %d\n", fileSize);
+                printf("ENCd strlen p: %d\n", strlen(plainText));
                 // printf("%s\n", plainText);
 
                 //recieve key
@@ -170,8 +170,9 @@ int main(int argc, char *argv[])
                 }                
 
                 //send encrypted message
+                printf("ENCd strlen e: %d\n", strlen(encryptedMessage));
                 // printf("%s\n", encryptedMessage);
-                send(establishedConnectionFD, encryptedMessage, fileSize, 0);                
+                send(establishedConnectionFD, encryptedMessage, strlen(encryptedMessage), 0);                
 
                 free(encryptedMessage);
                 encryptedMessage = NULL;
